@@ -9,28 +9,46 @@ When you click the **Knit** button a document will be generated that includes bo
 
 ## What is mean total number of steps taken per day?
 
-```{r, echo=TRUE}
+
+```r
 df <- read.csv("activity.csv")
+```
+
+```
+## Warning in file(file, "rt"): cannot open file 'activity.csv': No such file
+## or directory
+```
+
+```
+## Error in file(file, "rt"): cannot open the connection
+```
+
+```r
 days <- levels( as.factor(df$date) )
 stepsPerDay <- sapply(days, function(x) sum(subset(df, date == x)$steps, na.rm=TRUE))
 ```
 
-```{r, echo=TRUE}
+
+```r
 hist(stepsPerDay,breaks=seq(min(stepsPerDay),max(stepsPerDay) + 5000, by=1000), 
      xlim=c(min(stepsPerDay), max(stepsPerDay) + 5000),
      main="Histogram of the total number of step per day", 
      xlab="Total number of steps per day", col="green", border="blue")
 ```
 
-```{r, echo=TRUE}
+![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-2-1.png) 
+
+
+```r
 meanStepsPerDay <- mean(stepsPerDay)
 medianStepsPerDay <- median(stepsPerDay)
 ```
-* The mean total steps per day is `r format(round(meanStepsPerDay,2), nsmall=2)`
-* The median total steps per day is `r medianStepsPerDay`
+* The mean total steps per day is 9354.23
+* The median total steps per day is 10395
 
 ## What is the average daily activity pattern?
-```{r, echo=TRUE}
+
+```r
 intervalToString <- function(x) {
   paste(sprintf("%02d", as.integer(x/100)),
         ":",
@@ -44,29 +62,35 @@ intervalsAsHours <- seq(0, 2400, by=100)
 intervalStrings <- sapply(intervalsAsHours, intervalToString)
 ```
 
-```{r, fig.width=9, echo=TRUE}
+
+```r
 plot(intervals, meanStepsPerInterval, xlab="Time of day", 
      ylab="Mean steps per interval",axes=FALSE, type="l")
 axis(1,at=intervalsAsHours, labels=intervalStrings)
 axis(2)
 ```
 
-```{r, echo=TRUE}
+![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5-1.png) 
+
+
+```r
 busiestIntervalStr <- intervalToString(intervals[which.max(meanStepsPerInterval)])
 ```
 
 * The interval with the highest average number of steps per day is 
-`r busiestIntervalStr`.
+08:35.
 
 ## Imputing missing values
-```{r,echo=TRUE}
+
+```r
 totalMissingValues <- sum(is.na(df$steps))
 ```
-* The number of rows with missing values is `r totalMissingValues`.
+* The number of rows with missing values is 2304.
 
 The strategy chosen to impute missing values is to replace them with the mean for the particular interval it applies to.
 
-```{r, echo=TRUE}
+
+```r
 newdf <- df
 
 for (i in 1:nrow(newdf)) {
@@ -78,14 +102,18 @@ for (i in 1:nrow(newdf)) {
 imputedStepsPerDay <- sapply(days, function(x) sum(subset(newdf, date == x)$steps, na.rm=TRUE))
 ```
 
-```{r, echo=TRUE}
+
+```r
 hist(imputedStepsPerDay,breaks=seq(min(imputedStepsPerDay),max(imputedStepsPerDay) + 5000, by=1000), 
      xlim=c(min(imputedStepsPerDay), max(imputedStepsPerDay) + 5000),
      main="Histogram of the total number of step per day (Imputed)", 
      xlab="Total number of steps per day (Imputed)", col="green", border="blue")
 ```
 
-```{r, echo=TRUE}
+![plot of chunk unnamed-chunk-9](figure/unnamed-chunk-9-1.png) 
+
+
+```r
 imputedMeanStepsPerDay <- mean(imputedStepsPerDay)
 imputedMedianStepsPerDay <- median(imputedStepsPerDay)
 if (imputedMeanStepsPerDay > meanStepsPerDay) {
@@ -94,13 +122,14 @@ if (imputedMeanStepsPerDay > meanStepsPerDay) {
   totalSteps <- "decreases"
 }
 ```
-* The mean total steps per day changed from `r format(round(meanStepsPerDay,2), nsmall=2)` to  `r format(round(imputedMeanStepsPerDay,2), nsmall=2)`
-* The median total steps per day changed from `r format(round(medianStepsPerDay,2), nsmall=2)` to `r format(round(imputedMedianStepsPerDay,2), nsmall=2)`
+* The mean total steps per day changed from 9354.23 to  10766.19
+* The median total steps per day changed from 10395.00 to 10766.19
 
-The effect of imputing missing data `r totalSteps` the total number of daily steps.
+The effect of imputing missing data increases the total number of daily steps.
 
 ## Are there differences in activity patterns between weekdays and weekends?
-```{r, echo=TRUE}
+
+```r
 library(ggplot2)
 days <- weekdays(as.Date(newdf$date))
 
@@ -114,3 +143,5 @@ ggplot(newdf, aes(interval, x)) + geom_line() + facet_wrap( ~ day, ncol=1) +
   ylab("Mean steps per interval") +
   theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())
 ```
+
+![plot of chunk unnamed-chunk-11](figure/unnamed-chunk-11-1.png) 
