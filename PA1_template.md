@@ -3,33 +3,22 @@ title: "Peer Assessment 1"
 output: html_document
 ---
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+This assignment makes use of data from a personal activity monitoring device. This device collects data at 5 minute intervals through out the day. The data consists of two months of data from an anonymous individual collected during the months of October and November, 2012 and include the number of steps taken in 5 minute intervals each day.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
+```r
+if (!file.exists("activity.csv")) {
+  unzip("activity.zip")
+}
+```
 ## What is mean total number of steps taken per day?
 
 
 ```r
 df <- read.csv("activity.csv")
-```
-
-```
-## Warning in file(file, "rt"): cannot open file 'activity.csv': No such file
-## or directory
-```
-
-```
-## Error in file(file, "rt"): cannot open the connection
-```
-
-```r
 days <- levels( as.factor(df$date) )
 stepsPerDay <- sapply(days, function(x) sum(subset(df, date == x)$steps, na.rm=TRUE))
-```
 
-
-```r
+# plot the histogram
 hist(stepsPerDay,breaks=seq(min(stepsPerDay),max(stepsPerDay) + 5000, by=1000), 
      xlim=c(min(stepsPerDay), max(stepsPerDay) + 5000),
      main="Histogram of the total number of step per day", 
@@ -37,7 +26,6 @@ hist(stepsPerDay,breaks=seq(min(stepsPerDay),max(stepsPerDay) + 5000, by=1000),
 ```
 
 ![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-2-1.png) 
-
 
 ```r
 meanStepsPerDay <- mean(stepsPerDay)
@@ -60,18 +48,15 @@ intervals <- as.numeric(levels(as.factor(df$interval)))
 meanStepsPerInterval <- sapply(intervals, function(x) mean(subset(df, interval == x)$steps, na.rm=TRUE))
 intervalsAsHours <- seq(0, 2400, by=100)
 intervalStrings <- sapply(intervalsAsHours, intervalToString)
-```
 
-
-```r
+# plot the time line graph
 plot(intervals, meanStepsPerInterval, xlab="Time of day", 
      ylab="Mean steps per interval",axes=FALSE, type="l")
 axis(1,at=intervalsAsHours, labels=intervalStrings)
 axis(2)
 ```
 
-![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5-1.png) 
-
+![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-1.png) 
 
 ```r
 busiestIntervalStr <- intervalToString(intervals[which.max(meanStepsPerInterval)])
@@ -99,19 +84,17 @@ for (i in 1:nrow(newdf)) {
                                             newdf[i,]$interval)]
   }
 }
+
 imputedStepsPerDay <- sapply(days, function(x) sum(subset(newdf, date == x)$steps, na.rm=TRUE))
-```
 
-
-```r
+# plot the histogram
 hist(imputedStepsPerDay,breaks=seq(min(imputedStepsPerDay),max(imputedStepsPerDay) + 5000, by=1000), 
      xlim=c(min(imputedStepsPerDay), max(imputedStepsPerDay) + 5000),
      main="Histogram of the total number of step per day (Imputed)", 
      xlab="Total number of steps per day (Imputed)", col="green", border="blue")
 ```
 
-![plot of chunk unnamed-chunk-9](figure/unnamed-chunk-9-1.png) 
-
+![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5-1.png) 
 
 ```r
 imputedMeanStepsPerDay <- mean(imputedStepsPerDay)
@@ -134,14 +117,15 @@ library(ggplot2)
 days <- weekdays(as.Date(newdf$date))
 
 newdf$day <- "weekday"
-newdf$day[days == "Saturday"] <- "weekend"
-newdf$day[days == "Sunday"] <- "weekend"
+newdf$day[days == "Saturday" | days == "Sunday"] <- "weekend"
 
 newdf <- aggregate(newdf$steps, list(interval=newdf$interval, day=newdf$day), mean)
 
-ggplot(newdf, aes(interval, x)) + geom_line() + facet_wrap( ~ day, ncol=1) +
+names(newdf)[3] <- "steps"
+
+ggplot(newdf, aes(interval, steps)) + geom_line() + facet_wrap( ~ day, ncol=1) +
   ylab("Mean steps per interval") +
   theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())
 ```
 
-![plot of chunk unnamed-chunk-11](figure/unnamed-chunk-11-1.png) 
+![plot of chunk unnamed-chunk-6](figure/unnamed-chunk-6-1.png) 
